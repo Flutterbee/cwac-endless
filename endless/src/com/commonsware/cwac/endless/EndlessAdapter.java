@@ -60,6 +60,7 @@ abstract public class EndlessAdapter extends AdapterWrapper {
   private int pendingResource=-1;
   private boolean isSerialized=false;
   private boolean runInBackground=true;
+  private boolean isManualTrigger;
 
   /**
    * Constructor wrapping a supplied ListAdapter
@@ -76,9 +77,10 @@ abstract public class EndlessAdapter extends AdapterWrapper {
    * @param wrapped
    * @param keepOnAppending
    */
-  public EndlessAdapter(ListAdapter wrapped, boolean keepOnAppending) {
+  public EndlessAdapter(ListAdapter wrapped, boolean keepOnAppending, boolean manualTrigger) {
     super(wrapped);
     this.setKeepOnAppending(keepOnAppending);
+    isManualTrigger = manualTrigger;
   }
 
   /**
@@ -239,10 +241,24 @@ abstract public class EndlessAdapter extends AdapterWrapper {
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
     if (position == super.getCount() && keepOnAppending.get()) {
-      if (pendingView == null) {
-        pendingView=getPendingView(parent);
+    	 if (pendingView == null) {
+    	        pendingView=getPendingView(parent);
+    	   }
+       if(!isManualTrigger)
+       {
+        loadNextPage();
+       }
+      
 
-        if (runInBackground) {
+      return(pendingView);
+    }
+
+    return(super.getView(position, convertView, parent));
+  }
+  
+  public void loadNextPage()
+  {  
+	  if (runInBackground) {
           executeAsyncTask(buildTask());
         }
         else {
@@ -253,12 +269,6 @@ abstract public class EndlessAdapter extends AdapterWrapper {
             setKeepOnAppending(onException(pendingView, e));
           }
         }
-      }
-
-      return(pendingView);
-    }
-
-    return(super.getView(position, convertView, parent));
   }
 
   /**
@@ -367,8 +377,7 @@ abstract public class EndlessAdapter extends AdapterWrapper {
       return inflater.inflate(pendingResource, parent, false);
     }
 
-    throw new RuntimeException(
-                               "You must either override getPendingView() or supply a pending View resource via the constructor");
+    throw new RuntimeException("You must either override getPendingView() or supply a pending View resource via the constructor");
   }
 
   /**
