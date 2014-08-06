@@ -241,34 +241,30 @@ abstract public class EndlessAdapter extends AdapterWrapper {
   @Override
   public View getView(int position, View convertView, ViewGroup parent) {
     if (position == super.getCount() && keepOnAppending.get()) {
-    	 if (pendingView == null) {
-    	        pendingView=getPendingView(parent);
-    	   }
-       if(!isManualTrigger)
-       {
+      if (pendingView == null) {
+        pendingView=getPendingView(parent);
+      }
+      if(!isManualTrigger) {
         loadNextPage();
-       }
-      
-
+      }
       return(pendingView);
     }
 
     return(super.getView(position, convertView, parent));
   }
   
-  public void loadNextPage()
-  {  
-	  if (runInBackground) {
-          executeAsyncTask(buildTask());
-        }
-        else {
-          try {
-            setKeepOnAppending(cacheInBackground());
-          }
-          catch (Exception e) {
-            setKeepOnAppending(onException(pendingView, e));
-          }
-        }
+  public void loadNextPage(){  
+    if (runInBackground) {
+      executeAsyncTask(buildTask());
+    }
+    else {
+      try {
+        setKeepOnAppending(cacheInBackground());
+      }
+      catch (Exception e) {
+        setKeepOnAppending(onException(pendingView, e));
+      }
+    }
   }
 
   /**
